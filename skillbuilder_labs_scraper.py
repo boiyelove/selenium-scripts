@@ -6,6 +6,8 @@ import traceback
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+driver = webdriver.Edge()
+
 def get_number(path):
   """Gets the number from the path."""
   match = re.search(r"\d+", path)
@@ -22,9 +24,8 @@ def create_excel_sheet(filename, sheet_name, data):
       for column_index, column_data in enumerate(row_data):
         worksheet.write(row_index, column_index, column_data)
 
-def main():
+def crawl_lab_grids():
     url = "https://explore.skillbuilder.aws/learn/public/catalog/view/15?ctldoc-catalog-0=l-_en"
-    driver = webdriver.Edge()
     driver.get(url)
     time.sleep(5)
     count = driver.find_element(By.CLASS_NAME, 'course-catalog-total-count').text
@@ -40,34 +41,31 @@ def main():
         lab_links = [lab.find_element(By.TAG_NAME, "a").get_attribute("href") for lab in all_labs]
 
     print(f"Total Count: {count}, Total Found: {len(lab_links)}")
+    return lab_links
+
+def crawl_single_page(link):
+    driver.get(link)
+    time.sleep(5)
+    title = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/div/doc-layout/div/main/div/ng-component/div/course-content/div/div/div/div[1]/div[1]/div[2]/div/div[1]/h1").text
+    duration = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/div/doc-layout/div/main/div/ng-component/div/course-content/div/div/div/div[1]/div[1]/div[2]/div/div[2]/ul/li[2]/p").text
+    duration = duration.replace("Duration:", '')
+    description = driver.find_element(By.ID, "panel-0").text
+    print(title, duration, description)
+    # lab_data.append(title, duration, description, link)
+
+def main():
+    lab_links = crawl_lab_grids()
 
     labs_data = [['Title', 'Duration', 'Description', 'Link'],]
     for index, link in enumerate(lab_links):
         print(f"Getting link for {index+1} of {len(lab_links)}")
         print(index + 1, ": ", link)
-        # if link.startswith("/"):
-        #     link = parse.urljoin(driver.curre)
-        driver.get(link)
-        time.sleep(5)
-        course_head = driver.find_element_by_class_name("course-head-content") 
-        title = course_head.find_element_by_class_name("title")
-        course_info = course_head.find_element_by_class_name("course-info")
-        duration = course_info.find_element(By.TAG_NAME, "*")[0].text.replace("Duration:", '')
-        description = driver.find_element_by_class_name("tabs-description").text
-        lab_data.append(title, duration, description, link)
-        # addtional_info_tab = driver.find_element(By.XPath, "/html/body/div[2]/div/div/div/doc-layout/div/main/div/ng-component/div/course-content/div/div/div/div[1]/div[2]/tabs/div/div/header/div/div[1]/div[3]/a")
-        
-
+        crawl_single_page(link)
+        print(f"Link {index + 1} of {len(lab_links)}: Completed")
     create_excel_sheet("AWSSkillBuilder_Labs.xlsx", "Sheet1", labs_data)
-
-    time.sleep(10)
-    driver.find_element(By.CLASS_NAME, 'ui-card-duration')
-    time.sleep(10)
+    
+    time.sleep(5)
     driver.quit()
-
-
-    course_info = driver.find_element(By.CLASS_NAME('course-info'))
-    duration = course_info.find_elements_by_tag_name("*")[1]
 
 
 if __name__ == '__main__':
