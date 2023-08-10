@@ -23,6 +23,7 @@ def create_excel_sheet(filename, sheet_name, data):
     for row_index, row_data in enumerate(data):
       for column_index, column_data in enumerate(row_data):
         worksheet.write(row_index, column_index, column_data)
+    workbook.close()
 
 def crawl_lab_grids():
     url = "https://explore.skillbuilder.aws/learn/public/catalog/view/15?ctldoc-catalog-0=l-_en"
@@ -48,23 +49,23 @@ def crawl_single_page(link):
     time.sleep(5)
     title = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/div/doc-layout/div/main/div/ng-component/div/course-content/div/div/div/div[1]/div[1]/div[2]/div/div[1]/h1").text
     duration = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/div/doc-layout/div/main/div/ng-component/div/course-content/div/div/div/div[1]/div[1]/div[2]/div/div[2]/ul/li[2]/p").text
-    duration = duration.replace("Duration:", '')
+    duration = duration.replace("Duration: ", '')
     description = driver.find_element(By.ID, "panel-0").text
     print(title, duration, description)
+    return [title, duration, description]
     # lab_data.append(title, duration, description, link)
 
 def main():
-    lab_links = crawl_lab_grids()
+    # lab_links = crawl_lab_grids()
 
     labs_data = [['Title', 'Duration', 'Description', 'Link'],]
     for index, link in enumerate(lab_links):
         print(f"Getting link for {index+1} of {len(lab_links)}")
         print(index + 1, ": ", link)
-        crawl_single_page(link)
+        lab_data = crawl_single_page(link)
+        labs_data.append(lab_data)
         print(f"Link {index + 1} of {len(lab_links)}: Completed")
     create_excel_sheet("AWSSkillBuilder_Labs.xlsx", "Sheet1", labs_data)
-    
-    time.sleep(5)
     driver.quit()
 
 
