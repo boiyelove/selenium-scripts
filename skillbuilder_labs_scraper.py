@@ -1,6 +1,7 @@
 import time
 import re
 import xlsxwriter
+import traceback
 # from urllib import parse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -30,21 +31,20 @@ def main():
     count = get_number(count) or 0
     all_labs = []
     total_labs = 0
-    while total_labs < count:
+    lab_links = []
+    while len(lab_links) < count:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
+        
         all_labs = driver.find_elements(By.CLASS_NAME, "ui-card-title")
-        total_labs = len(all_labs)
-        # get all card elements and count
+        lab_links = [lab.find_element(By.TAG_NAME, "a").get_attribute("href") for lab in all_labs]
 
-    lab_links = List()
-    for lab_title in all_labs:
-        title = lab_title.find_element(By.TAG_NAME, "a")
-        print(title.get_attribute("href"))
-        lab_links = lab_links.append(title.get_attribute("href"))
+    print(f"Total Count: {count}, Total Found: {len(lab_links)}")
 
     labs_data = [['Title', 'Duration', 'Description', 'Link'],]
-    for link in lab_links:
+    for index, link in enumerate(lab_links):
+        print(f"Getting link for {index+1} of {len(lab_links)}")
+        print(index + 1, ": ", link)
         # if link.startswith("/"):
         #     link = parse.urljoin(driver.curre)
         driver.get(link)
