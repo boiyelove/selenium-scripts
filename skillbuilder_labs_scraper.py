@@ -56,7 +56,7 @@ def crawl_single_page(link):
     # lab_data.append(title, duration, description, link)
 
 def main():
-    # lab_links = crawl_lab_grids()
+    lab_links = crawl_lab_grids()
 
     labs_data = [['Title', 'Duration', 'Description', 'Link'],]
     for index, link in enumerate(lab_links):
